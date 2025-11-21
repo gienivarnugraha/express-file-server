@@ -1,5 +1,5 @@
 services:
-  bappeda_file_server:
+  file-server:
     # This tells Docker Compose to build the image using the Dockerfile in the current directory
     build:
       context: .

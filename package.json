@@ -5,18 +5,18 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "node test.js",
+    "test": "node tests/test.js",
     "dev": "nodemon index.js",
     "start": "node index.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "packageManager": "pnpm@10.17.0",
   "dependencies": {
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
-    "listhen": "^1.9.0",
-    "multer": "^2.0.2",
+    "morgan": "^1.10.1",
     "unstorage": "^1.17.3"
   },
   "devDependencies": {

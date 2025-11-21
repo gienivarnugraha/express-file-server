@@ -1,0 +1,47 @@
+services:
+  bappeda_file_server:
+    # This tells Docker Compose to build the image using the Dockerfile in the current directory
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    # Map port 8080 inside the container to port 3000 on the host machine
+    ports:
+      - "8090:3000"
+
+    # Set the critical environment variable for Nuxt's Nitro server
+    environment:
+      - HOST=0.0.0.0
+      - PORT=3000
+
+    # --- Healthcheck Definition ---
+    healthcheck:
+      # Command to run: Check if the application's URL is accessible
+      # The `curl` command ensures the web server is responding with a 2xx or 3xx status code.
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+
+      # How often to run the check
+      interval: 30s
+
+      # How long to wait for a response before the check fails
+      timeout: 10s
+
+      # The number of consecutive failures needed to consider the container 'unhealthy'
+      retries: 3
+
+      # The duration to wait before starting the first healthcheck
+      start_period: 20s
+    # Define the persistent storage volumes
+    # This is how you persist files that your Nuxt server generates (e.g., file uploads)
+    volumes:
+      # Named volume: 'nuxt-storage' is the volume name, '/app/storage' is the path inside the container
+      - storage:/public
+
+    # Optionally restart the container if it stops unexpectedly
+    restart: always
+
+# Define the named volumes outside the service block
+volumes:
+  storage:
+    # Use 'local' driver for local machine, which is the default
+    driver: local

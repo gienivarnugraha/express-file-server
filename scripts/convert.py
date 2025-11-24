@@ -84,10 +84,6 @@ def run_conversion():
     md_text=""
 
     try:
-        
-        # with open(inputfile, 'rb') as f:
-        #     pdf_bytes = f.read()
-
         if os.path.exists(outputfile):
             print(f"Skipping '{file_name}' - Markdown file already exists.")
             return
@@ -97,6 +93,8 @@ def run_conversion():
         os.makedirs(dirname/"images", exist_ok=True)
 
         if extension == '.pdf':
+            sys.stdout.write(f"Running conversion using pymupdf4llm for {inputfile} to {outputfile}: \n")
+
             md = pymupdf4llm.to_markdown(
                 doc=inputfile, 
                 write_images=True, 
@@ -112,12 +110,6 @@ def run_conversion():
 
         else:
             sys.stdout.write(f"Running conversion using microsoft markit down for {inputfile} to {outputfile}: \n")
-
-            # with open(inputfile, 'rb') as f:
-            #     file_bytes = f.read()
-
-            # Create an in-memory binary file from the byte string
-            # binary_stream = io.BytesIO(file_bytes)
 
             openai_client = OpenAI()
 

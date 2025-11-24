@@ -17,11 +17,7 @@ const storage = createStorage({
 
 
 // The handler maps HTTP requests to unstorage functions (GET -> getItem, PUT -> setItem, etc.)
-const storageServer = createStorageServer(storage, {
-    // We are not using the internal handle of unstorage/server
-    // because we need more control over when the response is sent.
-    // We will call storage operations manually in the express middleware.
-});
+const storageServer = createStorageServer(storage);
 
 
 function runPythonScript(input, output) {
@@ -80,51 +76,52 @@ app.use(morgan('combined')); // Log requests to the console
 
 // This makes the unstorage API available at the specified route path
 app.use(STORAGE_ROUTE, async (req, res, next) => {
-    const key = req.url.substring(1); // remove leading '/'
+    // const key = req.url.substring(1); // remove leading '/'
 
-    // For PUT requests, we handle file storage and then trigger the script
-    if (req.method === 'PUT') {
-        try {
-            const chunks = [];
-            for await (const chunk of req) {
-                chunks.push(chunk);
-            }
-            const body = Buffer.concat(chunks);
+    // // For PUT requests, we handle file storage and then trigger the script
+    // if (req.method === 'PUT') {
+    //     try {
+    //         const chunks = [];
+    //         for await (const chunk of req) {
+    //             chunks.push(chunk);
+    //         }
+    //         const body = Buffer.concat(chunks);
 
-            await storage.setItemRaw(key, body);
+    //         await storage.setItemRaw(key, body);
 
-            const split = key.split('/');
-            const type = split[0];
-            const filename = split[split.length - 1];
-            const extension = extname(filename);
+    //         const split = key.split('/');
+    //         const type = split[0];
+    //         const filename = split[split.length - 1];
+    //         const extension = extname(filename);
 
-            if (type === 'documents' && ALLOWED_TYPES.includes(extension)) {
-                const output_filename = split[split.length - 2] + '.md';
-                const filepath = split.slice(0, -1).join('/');
-                const input = resolve(join(BASE_DIR, filepath, filename));
-                const output = resolve(join(BASE_DIR, filepath, output_filename));
+    //         if (type === 'documents' && ALLOWED_TYPES.includes(extension)) {
+    //             const output_filename = split[split.length - 2] + '.md';
+    //             const filepath = split.slice(0, -1).join('/');
+    //             const input = resolve(join(BASE_DIR, filepath, filename));
+    //             const output = resolve(join(BASE_DIR, filepath, output_filename));
 
-                console.log('Input for script: ', input);
-                console.log('Output for script: ', output);
+    //             console.log('Input for script: ', input);
+    //             console.log('Output for script: ', output);
 
-                // Wait for the python script to finish
-                await runPythonScript(input, output);
+    //             // Wait for the python script to finish
+    //             await runPythonScript(input, output);
 
-                res.statusCode = 200;
-                res.end('File uploaded and processed successfully.');
-            } else {
-                res.statusCode = 200;
-                res.end('File uploaded successfully.');
-            }
-        } catch (err) {
-            console.error("Error during PUT and script execution:", err);
-            res.statusCode = 500;
-            res.end('Internal Server Error');
-        }
-    } else {
-        // For all other methods (GET, DELETE, etc.), use the default unstorage handler
-        storageServer.handle(req, res);
-    }
+    //             res.statusCode = 200;
+    //             res.end('File uploaded and processed successfully.');
+    //         } else {
+    //             res.statusCode = 200;
+    //             res.end('File uploaded successfully.');
+    //         }
+    //     } catch (err) {
+    //         console.error("Error during PUT and script execution:", err);
+    //         res.statusCode = 500;
+    //         res.end('Internal Server Error');
+    //     }
+    // } else {
+    //     // For all other methods (GET, DELETE, etc.), use the default unstorage handler
+    //     storageServer.handle(req, res);
+    // }
+    storageServer.handle(req, res);
 });
 
 // Optional: A simple root route for testing Express is running

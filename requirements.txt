@@ -1,4 +1,2 @@
-markitdown[pptx, docx, xlsx, xls, pdf]
+markitdown[pptx,docx,xlsx,xls,pdf]
 openai
-pymupdf4llm
-pymupdf

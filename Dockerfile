@@ -8,16 +8,21 @@ ENV PATH="$PNPM_HOME:$PATH"
 
 # Install Python and Pip for potential native dependencies during install
 RUN apk update && \
-    apk add --no-cache python3 py3-pip
-
+    apk add --no-cache python3 py3-pip build-base
     
 WORKDIR /app
     
 COPY package.json pnpm-lock.yaml ./
 
+# Create and activate Python virtual environment
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
 COPY requirements.txt ./
 
-RUN pip3 install -r requirements.txt
+RUN pip install --upgrade pip
+
+RUN pip install -r requirements.txt
     
 # Use a conventional pnpm store path for the cache mount
 # The target is the cache directory *inside* the container for this command

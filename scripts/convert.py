@@ -6,7 +6,7 @@ import pathlib
 import pymupdf.layout
 from openai import OpenAI, APIError as OpenAIAPIError
 from markitdown import MarkItDown 
-import pymupdf4llm
+# import pymupdf4llm
 
 
 
@@ -90,37 +90,38 @@ def run_conversion():
 
         print(f"Converting '{file_name}'...")
 
-        os.makedirs(dirname/"images", exist_ok=True)
+        # os.makedirs(dirname/"images", exist_ok=True)
 
-        if extension == '.pdf':
-            sys.stdout.write(f"Running conversion using pymupdf4llm for {inputfile} to {outputfile}: \n")
+        # if extension == '.pdf':
+        #     sys.stdout.write(f"Running conversion using pymupdf4llm for {inputfile} to {outputfile}: \n")
 
-            md = pymupdf4llm.to_markdown(
-                doc=inputfile, 
-                write_images=True, 
-                header=False,
-                footer=False,
-                image_path= dirname / "images",
-                image_format='png',
-                page_separators=True
-                )
+        #     md = pymupdf4llm.to_markdown(
+        #         doc=inputfile, 
+        #         write_images=True, 
+        #         header=False,
+        #         footer=False,
+        #         image_path= dirname / "images",
+        #         image_format='png',
+        #         page_separators=True
+        #         )
                 
-            # md_text = md.encode('cp437')
-            md_text = md
+        #     # md_text = md.encode('cp437')
+        #     md_text = md
 
-        else:
-            sys.stdout.write(f"Running conversion using microsoft markit down for {inputfile} to {outputfile}: \n")
+        # else:
 
-            openai_client = OpenAI()
+        sys.stdout.write(f"Running conversion using microsoft markit down for {inputfile} to {outputfile}: \n")
 
-            md = MarkItDown(
-                llm_client=openai_client, 
-                llm_model='gpt-4o-mini',
-            )
+        openai_client = OpenAI()
 
-            result = md.convert(inputfile)
+        md = MarkItDown(
+            llm_client=openai_client, 
+            llm_model='gpt-4o-mini',
+        )
 
-            md_text = result.text_content
+        result = md.convert(inputfile)
+
+        md_text = result.text_content
 
 
         # cleaned_md_text = clean_markdown_text(md_text, dirname)

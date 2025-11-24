@@ -4,7 +4,7 @@ import { createStorage } from 'unstorage';
 import { createStorageServer } from 'unstorage/server';
 import fsDriver from 'unstorage/drivers/fs-lite';
 import { spawn } from 'child_process';
-import { resolve, join, extname, dirname } from 'path';
+import { resolve, join, extname } from 'path';
 import morgan from 'morgan';
 
 // --- Configuration ---
@@ -52,7 +52,7 @@ const storageServer = createStorageServer(storage, {
 const app = express();
 const PORT = process.env.PORT || 3000;
 const STORAGE_ROUTE = process.env.STORAGE_ROUTE || '/storage';
-const ALLOWED_TYPES = process.env.ALLOWED_TYPES ? process.env.ALLOWED_TYPES.split(',') : ['.pdf', '.txt', '.docx'];
+const ALLOWED_TYPES = process.env.ALLOWED_TYPES ? process.env.ALLOWED_TYPES.split(',') : ['.pdf', '.txt', '.pptx', '.docx', '.xlsx', '.xls'];
 
 app.use(morgan('combined')); // Log requests to the console
 

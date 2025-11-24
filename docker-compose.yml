@@ -1,5 +1,5 @@
 services:
-  file-server:
+  server:
     # This tells Docker Compose to build the image using the Dockerfile in the current directory
     build:
       context: .
@@ -34,8 +34,8 @@ services:
     # Define the persistent storage volumes
     # This is how you persist files that your Nuxt server generates (e.g., file uploads)
     volumes:
-      # Named volume: 'nuxt-storage' is the volume name, '/app/storage' is the path inside the container
-      - storage:/public
+      # Named volume: 'bappeda_storage' is the volume name, '/app/public' is the path inside the container
+      - storage:/app/public
 
     # Optionally restart the container if it stops unexpectedly
     restart: always
@@ -43,5 +43,3 @@ services:
 # Define the named volumes outside the service block
 volumes:
   storage:
-    # Use 'local' driver for local machine, which is the default
-    driver: local

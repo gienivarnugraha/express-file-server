@@ -10,10 +10,15 @@ ENV PATH="$PNPM_HOME:$PATH"
 RUN apk update && \
     apk add --no-cache python3 py3-pip
 
+    
 WORKDIR /app
-
+    
 COPY package.json pnpm-lock.yaml ./
 
+COPY requirements.txt ./
+
+RUN pip3 install -r requirements.txt
+    
 # Use a conventional pnpm store path for the cache mount
 # The target is the cache directory *inside* the container for this command
 RUN --mount=type=cache,target=/root/.pnpm-store \

@@ -1,4 +1,5 @@
 node_modules
 public/*
+scripts/pdf-to-markdown-main
 
 .env

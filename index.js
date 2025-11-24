@@ -4,7 +4,7 @@ import { createStorage } from 'unstorage';
 import { createStorageServer } from 'unstorage/server';
 import fsDriver from 'unstorage/drivers/fs-lite';
 import { spawn } from 'child_process';
-import { resolve, join, dirname } from 'path';
+import { resolve, join, extname, dirname } from 'path';
 import morgan from 'morgan';
 
 // --- Configuration ---
@@ -52,6 +52,8 @@ const storageServer = createStorageServer(storage, {
 const app = express();
 const PORT = process.env.PORT || 3000;
 const STORAGE_ROUTE = process.env.STORAGE_ROUTE || '/storage';
+const ALLOWED_TYPES = process.env.ALLOWED_TYPES ? process.env.ALLOWED_TYPES.split(',') : ['.pdf', '.txt', '.docx'];
+
 app.use(morgan('combined')); // Log requests to the console
 
 // This makes the unstorage API available at the specified route path
@@ -75,58 +77,69 @@ app.use(STORAGE_ROUTE, async (req, res, next) => {
         // type is the first element e.g, documents
         const type = split[1];
 
+        // file.txt
+        const filename = split[split.length - 1];
+
+        const extension = extname(filename)
+
         // If a new item was created successfully (PUT returns 200)
-        // if (req.method === 'PUT' && res.statusCode === 200 && type === 'documents') {
+        if (req.method === 'PUT' && res.statusCode === 200 && type === 'documents' && ALLOWED_TYPES.includes(extension)) {
 
-        //     // file.txt
-        //     const input_filename = split[split.length - 1];
+            // filedir or filename without extension
+            const output_filename = split[split.length - 2] + '.md';
 
-        //     // filedir or filename without extension
-        //     const output_filename = split[split.length - 2] + '.md';
+            // convert key to filepath by replacing ":" with "/"
+            const filepath = split.slice(0, -1).join('/');
 
-        //     // convert key to filepath by replacing ":" with "/"
-        //     const filepath = split.slice(0, -1).join('/');
+            // absoulte path of input file which is ../../../public/documents/....../filedir/file.txt
+            const input = resolve(join(BASE_DIR, filepath, filename));
 
-        //     // absoulte path of input file which is ../../../public/documents/....../filedir/file.txt
-        //     const input = resolve(join(BASE_DIR, filepath, input_filename));
+            // absoulte path of Output file which is ../../../public/documents/...../filedir/file.md
+            const output = resolve(join(BASE_DIR, filepath, output_filename));
 
-        //     // absoulte path of Output file which is ../../../public/documents/...../filedir/file.md
-        //     const output = resolve(join(BASE_DIR, filepath, output_filename));
+            console.log('input: ', input)
+            console.log('output: ', output)
 
-        //     console.log('output: ', output)
+            const PYTHON_SCRIPT_PATH = resolve(join(process.cwd(), 'scripts', 'convert.py')); // e.g., 'scripts/convert.py'
 
+            const pythonExecutable = process.platform === 'win32' ? 'python.exe' : 'python3';
 
-        //     const PYTHON_SCRIPT_PATH = resolve(join(process.cwd(), 'scripts', 'convert.py')); // e.g., 'scripts/convert.py'
+            return new Promise((resolve, reject) => {
 
-        //     const pythonExecutable = process.platform === 'win32' ? 'python.exe' : 'python3';
+                const python = spawn(pythonExecutable, [PYTHON_SCRIPT_PATH, input, output], {
+                    cwd: process.cwd(),
+                    env: {
+                        ...process.env
+                    },
+                })
+                const err = [];
+                const out = []
 
-        //     const python = spawn(pythonExecutable, [PYTHON_SCRIPT_PATH, input, output], {
-        //         cwd: process.cwd(),
-        //         env: {
-        //             ...process.env
-        //         },
-        //     })
+                python.stdout.on('data', (data) => {
+                    console.log(`Python stdout: ${data}`);
+                    out.push(data);
+                });
 
-        //     python.stdout.on('data', (data) => {
-        //         console.log(`Python stdout: ${data}`);
-        //     });
+                python.stderr.on('data', (data) => {
+                    console.error(`Python stderr: ${data}`);
+                    err.push(data);
+                });
 
-        //     python.stderr.on('data', (data) => {
-        //         console.error(`Python stderr: ${data}`);
-        //     });
+                python.on('error', (err) => {
+                    console.error('Failed to start subprocess.', err);
+                })
 
-        //     python.on('error', (err) => {
-        //         console.error('Failed to start subprocess.', err);
-        //     })
-
-        //     python.on('close', (code, signal) => {
-        //         if (code === 0) {
-        //             console.log(`Python script completed successfully for key: ${key}`);
-        //         } else {
-        //             console.error(`Python script exited with code ${code} and signal ${signal} for key: ${key}`);
-        //         }
-        //     });
-        // }
+                python.on('close', (code, signal) => {
+                    if (code === 0) {
+                        console.log(`Python script completed successfully for key: ${key}`);
+                        resolve(out.join(', '));
+                    } else {
+                        console.error(`Python script exited with code ${code} and signal ${signal} for key: ${key}`);
+                        reject(new Error(`Python script failed with code ${code} with error: ` + err.join(', ')));
+                    }
+                });
+            })
+        }
     } catch (error) {
         // Handle authorization or other storage-related errors
         if (error.message === 'Unauthorized Read') {

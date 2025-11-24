@@ -1,5 +1,5 @@
 services:
-  server:
+  storage:
     # This tells Docker Compose to build the image using the Dockerfile in the current directory
     build:
       context: .
@@ -13,6 +13,8 @@ services:
     environment:
       - HOST=0.0.0.0
       - PORT=3000
+      - BASE_DIR=${BASE_DIR}
+      - STORAGE_ROUTE=${STORAGE_ROUTE}
 
     # --- Healthcheck Definition ---
     healthcheck:
@@ -23,23 +25,15 @@ services:
       # How often to run the check
       interval: 30s
 
-      # How long to wait for a response before the check fails
-      timeout: 10s
-
-      # The number of consecutive failures needed to consider the container 'unhealthy'
-      retries: 3
-
-      # The duration to wait before starting the first healthcheck
-      start_period: 20s
     # Define the persistent storage volumes
     # This is how you persist files that your Nuxt server generates (e.g., file uploads)
     volumes:
-      # Named volume: 'bappeda_storage' is the volume name, '/app/public' is the path inside the container
+      # Named volume: 'storage' is the volume name, '/app/storage' is the path inside the container
       - storage:/app/public
+      #- /node/bappeda-file/public:/public
 
     # Optionally restart the container if it stops unexpectedly
     restart: always
 
-# Define the named volumes outside the service block
 volumes:
   storage:
